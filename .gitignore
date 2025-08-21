@@ -1,0 +1,146 @@
+# Double Voice Explorer - Optimized .gitignore
+
+# ==============================================================================
+# OS Generated Files
+# ==============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ==============================================================================
+# Editor and IDE Files
+# ==============================================================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+
+# ==============================================================================
+# Large Data Files (Keep only sample data)
+# ==============================================================================
+# Exclude all large data directories
+data/
+datasets/
+raw-data/
+emotion-analysis/
+newspaper-data/
+
+# Exclude all CSV files except samples
+*.csv
+!sample-data/
+!sample-data/*.csv
+!sample-data/README.md
+!*sample*.csv
+!sample_*.csv
+
+# Exclude other large data formats
+*.xlsx
+*.xls
+*.json
+!package.json
+*.xml
+*.tsv
+*.txt
+!*.md
+!LICENSE
+!README.md
+!sample-data/README.md
+
+# ==============================================================================
+# Research and Analysis Files
+# ==============================================================================
+# Statistical analysis outputs
+results/
+analysis-output/
+statistics/
+*.spss
+*.sav
+*.dta
+*.rdata
+*.rds
+
+# Text mining and NLP outputs
+word-clouds/
+topic-models/
+sentiment-output/
+vader-analysis/
+
+# ==============================================================================
+# Backup and Temporary Files
+# ==============================================================================
+*.tmp
+*.bak
+*.backup
+*.old
+*~backup
+*.autosave
+.cache/
+
+# ==============================================================================
+# GitHub Pages and Static Site Generators
+# ==============================================================================
+_site/
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
+
+# ==============================================================================
+# Development and Build Files
+# ==============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# ==============================================================================
+# Documentation Drafts (Keep final versions)
+# ==============================================================================
+drafts/
+notes/
+todo.md
+scratch.md
+dev-notes.md
+
+# ==============================================================================
+# Log and Debug Files
+# ==============================================================================
+*.log
+debug.log
+error.log
+access.log
+
+# ==============================================================================
+# Archive and Compressed Files (if not needed)
+# ==============================================================================
+*.zip
+*.tar.gz
+*.rar
+*.7z
+!sample-data.zip
+
+# ==============================================================================
+# Environment and Configuration
+# ==============================================================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==============================================================================
+# Browser and Testing
+# ==============================================================================
+.browserlistrc
+cypress/screenshots/
+cypress/videos/
+test-results/
