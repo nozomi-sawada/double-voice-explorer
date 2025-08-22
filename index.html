@@ -1,6 +1,6 @@
 <!--
-Double Voice Explorer v1.0
-A tool for analyzing emotional patterns in colonial Lagos newspapers (1882-1921)
+Double Voice Explorer v2.0 (Internal Update)
+Enhanced with Kappa Coefficient Validation
 
 Author: Nozomi Sawada
 GitHub: https://github.com/nozomi-sawada/double-voice-explorer
@@ -8,6 +8,7 @@ License: MIT
 
 Description: Interactive visualization tool for "Double Voice" phenomena analysis
 Technology: Pure HTML/CSS/JavaScript with Chart.js and Papa Parse
+Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -472,6 +473,82 @@ Technology: Pure HTML/CSS/JavaScript with Chart.js and Papa Parse
             color: #666;
             margin-top: 5px;
         }
+        
+        /* Validation Information Styles */
+        .validation-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .validation-info h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 16px;
+        }
+        
+        .validation-info p {
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .validation-info strong {
+            color: #2c3e50;
+        }
+        
+        .future-updates {
+            background: #e7f3ff;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #0c5460;
+        }
+        
+        .future-updates h5 {
+            margin: 0 0 8px 0;
+            color: #0c5460;
+            font-size: 14px;
+        }
+        
+        /* Reliability Warning Styles */
+        .reliability-warning {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .reliability-warning.high {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .reliability-warning.moderate {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .reliability-warning.asymmetric {
+            background: #ffeaa7;
+            color: #856404;
+            border: 1px solid #f39c12;
+        }
+        
+        .reliability-warning.caution {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </head>
 <body>
@@ -541,11 +618,12 @@ Technology: Pure HTML/CSS/JavaScript with Chart.js and Papa Parse
             <div class="control-group">
                 <label>Emotion Pair:</label>
                 <select id="emotionPair">
-                    <option value="Trust_Disgust">Trust ↔ Disgust</option>
-                    <option value="Joy_Sadness">Joy ↔ Sadness</option>
-                    <option value="Anticipation_Surprise">Anticipation ↔ Surprise</option>
-                    <option value="Anger_Fear">Anger ↔ Fear</option>
+                    <option value="Trust_Disgust">Trust ↔ Disgust (κ=0.705, 0.843) ⭐ Primary Choice</option>
+                    <option value="Joy_Sadness">Joy ↔ Sadness (κ=0.747, 0.321) ⚠️ Asymmetric Reliability</option>
+                    <option value="Anger_Fear">Anger ↔ Fear (κ=0.819, 0.300) ⚠️ Asymmetric Reliability</option>
+                    <option value="Anticipation_Surprise">Anticipation ↔ Surprise (κ=0.419, 0.441) ⚠️ Moderate Reliability</option>
                 </select>
+                <div id="reliabilityWarning" style="margin-top: 5px; font-size: 12px; color: #666;"></div>
             </div>
             
             <div class="control-group">
@@ -583,6 +661,7 @@ Technology: Pure HTML/CSS/JavaScript with Chart.js and Papa Parse
             <button onclick="exportResults()" title="Export analysis results to CSV">Export Results</button>
             <button onclick="compareEditorialReader()" id="compareBtn" disabled>Launch 4-Category Comparison</button>
             <button onclick="toggleFormulas()" class="info-toggle" style="float: right;">📊 Show Formulas</button>
+            <button onclick="toggleValidation()" class="info-toggle" style="float: right; margin-right: 10px;">🔬 Show Validation</button>
         </div>
         
         <div class="info-section" id="formulaSection" style="display: none;">
@@ -613,6 +692,30 @@ Technology: Pure HTML/CSS/JavaScript with Chart.js and Papa Parse
                     <div class="formula">Both ≥ Threshold → 1, else → 0</div>
                     <div class="description">True Double Voice requires both emotions above threshold</div>
                 </div>
+            </div>
+        </div>
+        
+        <div class="validation-info" id="validationInfo" style="display: none;">
+            <h4>🔬 Validation Information</h4>
+            <p><strong>Method:</strong> Cohen's weighted kappa coefficients with quadratic weighting</p>
+            <p><strong>Dataset:</strong> Lagos Observer editorials (n=50)</p>
+            <p><strong>Source:</strong> Sawada & Sasaki (2025). "Quantitative Analysis of Negativity in Colonial Nigerian Newspapers." <em>DH 2025</em>, Lisbon.</p>
+            
+            <h5>Reliability by Emotion:</h5>
+            <ul>
+                <li><strong>High (κ > 0.7):</strong> Disgust (0.843), Anger (0.819), Joy (0.747), Trust (0.705)</li>
+                <li><strong>Moderate (κ ≈ 0.4):</strong> Surprise (0.441), Anticipation (0.419)</li>
+                <li><strong>Low (κ ≈ 0.3):</strong> Sadness (0.321), Fear (0.300)</li>
+            </ul>
+            
+            <div class="future-updates">
+                <h5>🔮 Future Development</h5>
+                <p>Current validation limited to Lagos Observer subset. Future improvements planned:</p>
+                <ul>
+                    <li>Expanded validation with Lagos Weekly Record</li>
+                    <li>Larger sample sizes for comprehensive statistical analysis</li>
+                    <li>Additional visualization options and statistical measures</li>
+                </ul>
             </div>
         </div>
         
@@ -732,6 +835,11 @@ Technology: Pure HTML/CSS/JavaScript with Chart.js and Papa Parse
         // Initialize
         document.getElementById('threshold').addEventListener('input', function() {
             document.getElementById('thresholdValue').textContent = this.value;
+        });
+        
+        // Add event listener for emotion pair change to update reliability warning
+        document.getElementById('emotionPair').addEventListener('change', function() {
+            updateReliabilityWarning();
         });
         
         // File upload handlers
@@ -1426,6 +1534,44 @@ Technology: Pure HTML/CSS/JavaScript with Chart.js and Papa Parse
         
         function compareEditorialReader() {
             selectNewspaper('FOUR_CATEGORY');
+        }
+        
+        function toggleValidation() {
+            const section = document.getElementById('validationInfo');
+            const buttons = document.querySelectorAll('.info-toggle');
+            const validationButton = Array.from(buttons).find(btn => btn.textContent.includes('Validation'));
+            
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                validationButton.textContent = '🔬 Hide Validation';
+            } else {
+                section.style.display = 'none';
+                validationButton.textContent = '🔬 Show Validation';
+            }
+        }
+        
+        function updateReliabilityWarning() {
+            const pair = document.getElementById('emotionPair').value;
+            const warningDiv = document.getElementById('reliabilityWarning');
+            
+            switch(pair) {
+                case 'Trust_Disgust':
+                    warningDiv.innerHTML = '✅ High reliability (κ=0.705, 0.843) - Both emotions well-detected';
+                    warningDiv.style.color = '#27ae60';
+                    break;
+                case 'Joy_Sadness':
+                    warningDiv.innerHTML = '⚠️ Asymmetric: Joy reliable (κ=0.747), Sadness limited (κ=0.321)';
+                    warningDiv.style.color = '#f39c12';
+                    break;
+                case 'Anger_Fear':
+                    warningDiv.innerHTML = '⚠️ Asymmetric: Anger reliable (κ=0.819), Fear limited (κ=0.300)';
+                    warningDiv.style.color = '#f39c12';
+                    break;
+                case 'Anticipation_Surprise':
+                    warningDiv.innerHTML = '⚠️ Moderate reliability (κ=0.419, 0.441) - Use supplementary';
+                    warningDiv.style.color = '#e67e22';
+                    break;
+            }
         }
         
         function updateComparisonCharts() {
