@@ -52,6 +52,10 @@ Colonial newspapers present unique challenges for emotional analysis, as they of
 - **Colonial Studies**: Analysis of emotional labor and resistance strategies
 - **Digital Humanities**: Computational approaches to historical newspaper analysis
 - **African Studies**: Early African journalism and public sphere formation
+- 
+## Development Acknowledgments
+
+This tool was developed by Nozomi Sawada. AI assistance (Claude) was used for code implementation and debugging, with all academic content, methodological decisions, and validation being the sole responsibility of the human researcher.
 
 ## Citation
 
