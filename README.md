@@ -69,7 +69,7 @@ This tool was designed with a strong emphasis on security and long-term academic
 - 
 ## Development Acknowledgments
 
-This tool was developed by Nozomi Sawada. AI assistance (Claude) was used for code implementation and debugging, with all academic content, methodological decisions, and validation being the sole responsibility of the human researcher.
+This tool was developed by Nozomi Sawada. Portions of this repository were drafted with AI assistance (e.g., Claude Code Sonnet 4.5, Gemini 2.5 Pro, GPT-5 Thinking) for code implementation and debugging. All academic content, methodological decisions, and validation were reviewed and remain the sole responsibility of the human researcher.
 
 ## Citation
 
