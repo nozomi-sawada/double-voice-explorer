@@ -37,8 +37,8 @@ mv lwr-editorial-sample.txt sample-data/sample_lwr_editorial.csv
 
 ### Core Technologies
 - **Pure HTML/CSS/JavaScript**: No build process, framework, or dependencies
-- **Chart.js 3.9.1**: Interactive scatter plots and time series visualizations
-- **Papa Parse 5.3.0**: Client-side CSV file parsing
+- **Chart.js 3.9.1 (local library)**: Interactive scatter plots and time series visualizations
+- **Papa Parse 5.3.0 (local library)**: Client-side CSV file parsing
 - **Responsive Design**: Mobile and tablet compatible
 
 ### Data Processing Pipeline
@@ -53,6 +53,12 @@ mv lwr-editorial-sample.txt sample-data/sample_lwr_editorial.csv
 - **Balance**: 1 - |Emotion1 - Emotion2| - emotional equilibrium
 - **Intensity**: (Emotion1 + Emotion2) / 2 - average emotional strength
 - **Valid DV**: Boolean flag when both emotions exceed threshold (default 0.5)
+
+### Security Features
+- **XSS Prevention**: All DOM manipulation uses safe methods (`.textContent`, `createElement()`, `appendChild()`)
+- **CSV Injection Protection**: Exported data is sanitized via `sanitizeForCSV()` to prevent formula execution in spreadsheet software
+- **Event Handler Security**: No inline event handlers (`onclick`), all use `addEventListener()`
+- **Local Libraries**: Chart.js and Papa Parse are bundled locally (`./chart.min.js`, `./papaparse.min.js`) to ensure reproducibility and avoid network tampering
 
 ## Data Format Requirements
 
@@ -77,8 +83,8 @@ mv lwr-editorial-sample.txt sample-data/sample_lwr_editorial.csv
 ### Single-File Architecture Benefits
 - No build process required
 - Easy deployment and sharing
-- Self-contained with external CDN dependencies
-- Works offline once loaded
+- Self-contained with local library dependencies (no external CDNs)
+- Works offline and in restrictive network environments
 
 ## Research Context
 
