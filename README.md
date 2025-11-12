@@ -37,9 +37,23 @@ Colonial newspapers present unique challenges for emotional analysis, as they of
 ## Technical Details
 
 - **Frontend**: HTML/CSS/JavaScript (no build process)
-- **Visualization**: Chart.js 3.9.1
-- **Data Processing**: Papa Parse 5.3.0
+- **Visualization**: Chart.js 3.9.1 (local library)
+- **Data Processing**: Papa Parse 5.3.0 (local library)
 - **Deployment**: GitHub Pages
+
+## Security and Reproducibility (安全性と再現性)
+
+This tool was designed with a strong emphasis on security and long-term academic reproducibility, based on a comprehensive security review.
+
+1. **Security (安全性)**:
+   * **XSS Prevention**: All `.innerHTML` operations have been replaced with safe `.textContent` methods to prevent DOM-based XSS attacks from user-uploaded data.
+   * **CSV Formula Injection**: All exported string data is sanitized via `sanitizeForCSV()` to prevent malicious formula execution in spreadsheet software.
+   * **Event Handlers**: All inline `onclick` attributes were removed and replaced with secure `addEventListener` methods.
+
+2. **Reproducibility (再現性)**:
+   * **Local Libraries**: This tool **intentionally bundles local copies** of `Chart.js` and `Papa Parse` (`./chart.min.js`, `./papaparse.min.js`) instead of using external CDNs.
+   * **Why**: This approach guarantees long-term functionality (even if CDNs change) and ensures the tool runs in offline environments or on networks (proxies, etc.) that might otherwise block SRI verification.
+   * **Timestamps**: Exported filenames use the user's local date (`localDateStamp()`) to prevent timezone ambiguity in research data.
 
 ## Sample Data
 
