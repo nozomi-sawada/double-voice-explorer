@@ -16,6 +16,10 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Double Voice Explorer - 4-Category Analysis (LO/LWR × Editorial/Correspondence)</title>
+
+    <!-- External CDN scripts with crossorigin for security -->
+    <!-- Note: SRI integrity hashes can be added for additional security -->
+    <!-- Verify hashes from https://cdnjs.com before adding -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"
             crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"
@@ -854,16 +858,12 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
         }
 
         function handleFileUpload(event, type) {
-            console.log('handleFileUpload called with type:', type);
             const file = event.target.files[0];
             if (!file) {
-                console.error('No file selected');
                 return;
             }
-            console.log('File selected:', file.name, 'Size:', file.size, 'Type:', file.type);
             const reader = new FileReader();
             reader.onload = function(e) {
-                console.log('File loaded successfully, parsing...');
                 parseData(e.target.result, type);
             };
             reader.onerror = function(e) {
@@ -874,16 +874,11 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
         }
 
         function parseData(csvText, type) {
-            console.log('parseData called with type:', type, 'CSV length:', csvText.length);
             Papa.parse(csvText, {
                 header: true,
                 dynamicTyping: true,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    console.log('Papa Parse complete. Rows:', results.data.length);
-                    if (results.errors.length > 0) {
-                        console.warn('Parse errors:', results.errors);
-                    }
                     let data = results.data;
 
                     // Clean column names and add metadata
@@ -915,7 +910,6 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
                     // Store data
                     if (type === 'LO_Editorial') {
                         loEditorialData = data;
-                        console.log('Stored LO Editorial data:', data.length, 'rows');
                         const statusEl = document.getElementById('lo-status');
                         statusEl.className = 'newspaper-status loaded';
                         statusEl.textContent = `✓ ${data.length} editorials`;
@@ -946,7 +940,6 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
 
                     // Combine all data
                     allData = [...loEditorialData, ...loSubmissionsData, ...lwrEditorialData, ...lwrSubmissionsData];
-                    console.log('Combined all data. Total rows:', allData.length);
 
                     // Update year range
                     if (allData.length > 0) {
@@ -1817,8 +1810,6 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
 
         function exportResults() {
             try {
-                console.log('Starting export...');
-
                 if (allData.length === 0) {
                     alert('No data to export. Please upload data files first.');
                     return;
@@ -1827,8 +1818,6 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
                 const pair = document.getElementById('emotionPair').value;
                 const threshold = parseFloat(document.getElementById('threshold').value);
                 const [emotion1, emotion2] = pair.split('_');
-
-                console.log('Preparing export data...');
 
                 const exportData = allData.map(record => {
                     const dvScores = calculateDoubleVoice(record, emotion1, emotion2, threshold);
@@ -1861,16 +1850,12 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
                     };
                 });
 
-                console.log('Converting to CSV...');
-
                 // Convert to CSV using Papa Parse with BOM for Excel compatibility
                 const csv = '\ufeff' + Papa.unparse(exportData, {
                     quotes: true,
                     delimiter: ",",
                     header: true
                 });
-
-                console.log('Creating download...');
 
                 // Create blob and download
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1891,8 +1876,6 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
                 // Clean up
                 window.URL.revokeObjectURL(url);
 
-                console.log('Export completed successfully');
-
             } catch (error) {
                 console.error('Export error:', error);
                 alert('Error exporting data: ' + error.message);
@@ -1901,7 +1884,6 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
 
         // DOMContentLoaded event listener to initialize all event handlers
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOMContentLoaded - Initializing event handlers...');
             // Threshold slider
             const slider = document.getElementById('threshold');
             const sliderVal = document.getElementById('thresholdValue');
@@ -1919,19 +1901,9 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
             });
 
             // File uploads
-            const loFileInput = document.getElementById('loFileInput');
-            const loSubmissionsFileInput = document.getElementById('loSubmissionsFileInput');
-            const lwrFileInput = document.getElementById('lwrFileInput');
-
-            console.log('File inputs found:', {
-                loFileInput: !!loFileInput,
-                loSubmissionsFileInput: !!loSubmissionsFileInput,
-                lwrFileInput: !!lwrFileInput
-            });
-
-            loFileInput?.addEventListener('change', (e) => handleFileUpload(e, 'LO_Editorial'));
-            loSubmissionsFileInput?.addEventListener('change', (e) => handleFileUpload(e, 'LO_Submission'));
-            lwrFileInput?.addEventListener('change', (e) => handleFileUpload(e, 'LWR_Editorial'));
+            document.getElementById('loFileInput')?.addEventListener('change', (e) => handleFileUpload(e, 'LO_Editorial'));
+            document.getElementById('loSubmissionsFileInput')?.addEventListener('change', (e) => handleFileUpload(e, 'LO_Submission'));
+            document.getElementById('lwrFileInput')?.addEventListener('change', (e) => handleFileUpload(e, 'LWR_Editorial'));
 
             // Newspaper cards
             document.getElementById('lo-card')?.addEventListener('click', () => selectNewspaper('LO'));
