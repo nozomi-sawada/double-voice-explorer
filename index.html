@@ -1042,8 +1042,9 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
         }
 
         function calculateDoubleVoice(record, emotion1, emotion2, threshold) {
-            const val1 = record[emotion1] || 0;
-            const val2 = record[emotion2] || 0;
+            // Robustness: Explicitly convert to number and handle NaN
+            const val1 = parseFloat(record[emotion1]) || 0;
+            const val2 = parseFloat(record[emotion2]) || 0;
 
             const isDoubleVoice = val1 >= threshold && val2 >= threshold;
 
@@ -1070,9 +1071,17 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
 
         function updateAnalysis() {
             const pair = document.getElementById('emotionPair').value;
-            const threshold = parseFloat(document.getElementById('threshold').value);
-            const yearFrom = parseInt(document.getElementById('yearFrom').value);
-            const yearTo = parseInt(document.getElementById('yearTo').value);
+            const thresholdInput = document.getElementById('threshold');
+            const yearFromInput = document.getElementById('yearFrom');
+            const yearToInput = document.getElementById('yearTo');
+
+            // Robustness: Handle NaN cases with fallback to default values
+            const threshold = parseFloat(thresholdInput.value) || 0.5;
+            const yearFromRaw = parseInt(yearFromInput.value, 10);
+            const yearToRaw = parseInt(yearToInput.value, 10);
+            const yearFrom = isNaN(yearFromRaw) ? (parseInt(yearFromInput.min, 10) || 1882) : yearFromRaw;
+            const yearTo = isNaN(yearToRaw) ? (parseInt(yearToInput.max, 10) || 1921) : yearToRaw;
+
             const contentTypeFilter = document.getElementById('contentTypeFilter').value;
             const newspaperFilter = document.getElementById('newspaperFilter').value;
 
@@ -1224,10 +1233,6 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
         function updateScatterPlot(scores, emotion1, emotion2, threshold) {
             const ctx = document.getElementById('scatterChart').getContext('2d');
 
-            if (scatterChart) {
-                scatterChart.destroy();
-            }
-
             // Separate data by newspaper AND content type (4 categories)
             const loEditorials = scores.filter(s => s.newspaper === 'LO' && s.contentType === 'Editorial');
             const loCorrespondence = scores.filter(s => s.newspaper === 'LO' && s.contentType === 'Submission');
@@ -1304,62 +1309,71 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
                 });
             }
 
-            scatterChart = new Chart(ctx, {
-                type: 'scatter',
-                data: { datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: `${emotion1} vs ${emotion2} Distribution`
-                        },
-                        legend: {
-                            display: true
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const point = context.raw;
-                                    return [
-                                        `${point.type} #${point.id}`,
-                                        `Year: ${point.year}`,
-                                        `${emotion1}: ${point.x.toFixed(3)}`,
-                                        `${emotion2}: ${point.y.toFixed(3)}`
-                                    ];
+            const newTitle = `${emotion1} vs ${emotion2} Distribution`;
+
+            // Performance: Use chart.update() instead of destroy + recreate
+            if (scatterChart) {
+                // Update existing chart
+                scatterChart.data.datasets = datasets;
+                scatterChart.options.plugins.title.text = newTitle;
+                scatterChart.options.scales.x.title.text = emotion1;
+                scatterChart.options.scales.y.title.text = emotion2;
+                scatterChart.update();
+            } else {
+                // Create chart for the first time
+                scatterChart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: newTitle
+                            },
+                            legend: {
+                                display: true
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const point = context.raw;
+                                        return [
+                                            `${point.type} #${point.id}`,
+                                            `Year: ${point.year}`,
+                                            `${emotion1}: ${point.x.toFixed(3)}`,
+                                            `${emotion2}: ${point.y.toFixed(3)}`
+                                        ];
+                                    }
                                 }
                             }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: emotion1
-                            },
-                            min: 0,
-                            max: 1
                         },
-                        y: {
-                            title: {
-                                display: true,
-                                text: emotion2
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: emotion1
+                                },
+                                min: 0,
+                                max: 1
                             },
-                            min: 0,
-                            max: 1
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: emotion2
+                                },
+                                min: 0,
+                                max: 1
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
         function updateTimeSeries(scores, emotion1, emotion2) {
             const ctx = document.getElementById('timeChart').getContext('2d');
-
-            if (timeChart) {
-                timeChart.destroy();
-            }
 
             // Group by year and full category (newspaper + content type)
             const yearlyData = {};
@@ -1412,59 +1426,70 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
                 }
             });
 
-            timeChart = new Chart(ctx, {
-                type: 'line',
-                data: { datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Double Voice Trends Over Time'
-                        },
-                        annotation: {
-                            annotations: {
-                                gap: {
-                                    type: 'box',
-                                    xMin: 1888.5,
-                                    xMax: 1890.5,
-                                    backgroundColor: 'rgba(255, 243, 205, 0.3)',
-                                    borderColor: 'rgba(255, 193, 7, 0.5)',
-                                    borderWidth: 1,
-                                    label: {
-                                        content: 'Newspaper Gap',
-                                        display: true,
-                                        position: 'center'
+            const newTitle = 'Double Voice Trends Over Time';
+
+            // Performance: Use chart.update() instead of destroy + recreate
+            if (timeChart) {
+                // Update existing chart
+                timeChart.data.datasets = datasets;
+                timeChart.options.plugins.title.text = newTitle;
+                timeChart.update();
+            } else {
+                // Create chart for the first time
+                timeChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: newTitle
+                            },
+                            annotation: {
+                                annotations: {
+                                    gap: {
+                                        type: 'box',
+                                        xMin: 1888.5,
+                                        xMax: 1890.5,
+                                        backgroundColor: 'rgba(255, 243, 205, 0.3)',
+                                        borderColor: 'rgba(255, 193, 7, 0.5)',
+                                        borderWidth: 1,
+                                        label: {
+                                            content: 'Newspaper Gap',
+                                            display: true,
+                                            position: 'center'
+                                        }
                                     }
                                 }
                             }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            title: {
-                                display: true,
-                                text: 'Year'
-                            },
-                            ticks: {
-                                callback: function(value) {
-                                    return Math.round(value).toString();
-                                }
-                            }
                         },
-                        y: {
-                            beginAtZero: true,
-                            max: 1,
-                            title: {
-                                display: true,
-                                text: 'Average Double Voice Score'
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                title: {
+                                    display: true,
+                                    text: 'Year'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return Math.round(value).toString();
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                max: 1,
+                                title: {
+                                    display: true,
+                                    text: 'Average Double Voice Score'
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
         function updateResultsList(scores, emotion1, emotion2) {
@@ -1646,92 +1671,97 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
         function updateComparisonBarChart(loeStats, locStats, lwreStats, lwrcStats, emotion1, emotion2) {
             const ctx = document.getElementById('comparisonChart').getContext('2d');
 
-            if (comparisonChart) {
-                comparisonChart.destroy();
-            }
+            const barData = {
+                labels: ['Total Articles', 'Valid DV', 'DV %', `Avg ${emotion1}`, `Avg ${emotion2}`, 'Avg DV Score'],
+                datasets: [{
+                    label: 'LO Editorial',
+                    data: [
+                        loeStats.total,
+                        loeStats.validDV,
+                        parseFloat(loeStats.percentage),
+                        loeStats.avgEmotion1,
+                        loeStats.avgEmotion2,
+                        loeStats.avgDVScore
+                    ],
+                    backgroundColor: 'rgba(231, 76, 60, 0.6)',
+                    borderColor: 'rgba(231, 76, 60, 1)',
+                    borderWidth: 2
+                }, {
+                    label: 'LO Correspondence',
+                    data: [
+                        locStats.total,
+                        locStats.validDV,
+                        parseFloat(locStats.percentage),
+                        locStats.avgEmotion1,
+                        locStats.avgEmotion2,
+                        locStats.avgDVScore
+                    ],
+                    backgroundColor: 'rgba(243, 156, 18, 0.6)',
+                    borderColor: 'rgba(243, 156, 18, 1)',
+                    borderWidth: 2
+                }, {
+                    label: 'LWR Editorial',
+                    data: [
+                        lwreStats.total,
+                        lwreStats.validDV,
+                        parseFloat(lwreStats.percentage),
+                        lwreStats.avgEmotion1,
+                        lwreStats.avgEmotion2,
+                        lwreStats.avgDVScore
+                    ],
+                    backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2
+                }, {
+                    label: 'LWR Correspondence',
+                    data: [
+                        lwrcStats.total,
+                        lwrcStats.validDV,
+                        parseFloat(lwrcStats.percentage),
+                        lwrcStats.avgEmotion1,
+                        lwrcStats.avgEmotion2,
+                        lwrcStats.avgDVScore
+                    ],
+                    backgroundColor: 'rgba(46, 204, 113, 0.6)',
+                    borderColor: 'rgba(46, 204, 113, 1)',
+                    borderWidth: 2
+                }]
+            };
 
-            comparisonChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Total Articles', 'Valid DV', 'DV %', `Avg ${emotion1}`, `Avg ${emotion2}`, 'Avg DV Score'],
-                    datasets: [{
-                        label: 'LO Editorial',
-                        data: [
-                            loeStats.total,
-                            loeStats.validDV,
-                            parseFloat(loeStats.percentage),
-                            loeStats.avgEmotion1,
-                            loeStats.avgEmotion2,
-                            loeStats.avgDVScore
-                        ],
-                        backgroundColor: 'rgba(231, 76, 60, 0.6)',
-                        borderColor: 'rgba(231, 76, 60, 1)',
-                        borderWidth: 2
-                    }, {
-                        label: 'LO Correspondence',
-                        data: [
-                            locStats.total,
-                            locStats.validDV,
-                            parseFloat(locStats.percentage),
-                            locStats.avgEmotion1,
-                            locStats.avgEmotion2,
-                            locStats.avgDVScore
-                        ],
-                        backgroundColor: 'rgba(243, 156, 18, 0.6)',
-                        borderColor: 'rgba(243, 156, 18, 1)',
-                        borderWidth: 2
-                    }, {
-                        label: 'LWR Editorial',
-                        data: [
-                            lwreStats.total,
-                            lwreStats.validDV,
-                            parseFloat(lwreStats.percentage),
-                            lwreStats.avgEmotion1,
-                            lwreStats.avgEmotion2,
-                            lwreStats.avgDVScore
-                        ],
-                        backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                        borderColor: 'rgba(52, 152, 219, 1)',
-                        borderWidth: 2
-                    }, {
-                        label: 'LWR Correspondence',
-                        data: [
-                            lwrcStats.total,
-                            lwrcStats.validDV,
-                            parseFloat(lwrcStats.percentage),
-                            lwrcStats.avgEmotion1,
-                            lwrcStats.avgEmotion2,
-                            lwrcStats.avgDVScore
-                        ],
-                        backgroundColor: 'rgba(46, 204, 113, 0.6)',
-                        borderColor: 'rgba(46, 204, 113, 1)',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Four-Way Comparison: Editorial vs Correspondence by Newspaper'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
+            const barTitle = 'Four-Way Comparison: Editorial vs Correspondence by Newspaper';
+
+            // Performance: Use chart.update() instead of destroy + recreate
+            if (comparisonChart) {
+                // Update existing chart
+                comparisonChart.data = barData;
+                comparisonChart.options.plugins.title.text = barTitle;
+                comparisonChart.update();
+            } else {
+                // Create chart for the first time
+                comparisonChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: barData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: barTitle
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
         function updateDistributionChart(loEditorials, loCorrespondence, lwrEditorials, lwrCorrespondence, emotion1, emotion2) {
             const ctx = document.getElementById('distributionChart').getContext('2d');
-
-            if (distributionChart) {
-                distributionChart.destroy();
-            }
 
             // Calculate distribution for each category
             const loeDist = calculateDistribution(loEditorials, emotion1, emotion2);
@@ -1739,50 +1769,63 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
             const lwreDist = calculateDistribution(lwrEditorials, emotion1, emotion2);
             const lwrcDist = calculateDistribution(lwrCorrespondence, emotion1, emotion2);
 
-            distributionChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: [`Low ${emotion1}`, `High ${emotion1}`, `Low ${emotion2}`,
-                            `High ${emotion2}`, 'Balanced DV', 'Intense DV'],
-                    datasets: [{
-                        label: 'LO Editorial',
-                        data: loeDist,
-                        borderColor: 'rgba(231, 76, 60, 1)',
-                        backgroundColor: 'rgba(231, 76, 60, 0.2)'
-                    }, {
-                        label: 'LO Correspondence',
-                        data: locDist,
-                        borderColor: 'rgba(243, 156, 18, 1)',
-                        backgroundColor: 'rgba(243, 156, 18, 0.2)'
-                    }, {
-                        label: 'LWR Editorial',
-                        data: lwreDist,
-                        borderColor: 'rgba(52, 152, 219, 1)',
-                        backgroundColor: 'rgba(52, 152, 219, 0.2)'
-                    }, {
-                        label: 'LWR Correspondence',
-                        data: lwrcDist,
-                        borderColor: 'rgba(46, 204, 113, 1)',
-                        backgroundColor: 'rgba(46, 204, 113, 0.2)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Emotional Pattern Distribution - All Categories'
-                        }
-                    },
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            max: 1
+            const radarData = {
+                labels: [`Low ${emotion1}`, `High ${emotion1}`, `Low ${emotion2}`,
+                        `High ${emotion2}`, 'Balanced DV', 'Intense DV'],
+                datasets: [{
+                    label: 'LO Editorial',
+                    data: loeDist,
+                    borderColor: 'rgba(231, 76, 60, 1)',
+                    backgroundColor: 'rgba(231, 76, 60, 0.2)'
+                }, {
+                    label: 'LO Correspondence',
+                    data: locDist,
+                    borderColor: 'rgba(243, 156, 18, 1)',
+                    backgroundColor: 'rgba(243, 156, 18, 0.2)'
+                }, {
+                    label: 'LWR Editorial',
+                    data: lwreDist,
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)'
+                }, {
+                    label: 'LWR Correspondence',
+                    data: lwrcDist,
+                    borderColor: 'rgba(46, 204, 113, 1)',
+                    backgroundColor: 'rgba(46, 204, 113, 0.2)'
+                }]
+            };
+
+            const radarTitle = 'Emotional Pattern Distribution - All Categories';
+
+            // Performance: Use chart.update() instead of destroy + recreate
+            if (distributionChart) {
+                // Update existing chart
+                distributionChart.data = radarData;
+                distributionChart.options.plugins.title.text = radarTitle;
+                distributionChart.update();
+            } else {
+                // Create chart for the first time
+                distributionChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: radarData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: radarTitle
+                            }
+                        },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 1
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
         }
 
         function calculateDistribution(data, emotion1, emotion2) {
