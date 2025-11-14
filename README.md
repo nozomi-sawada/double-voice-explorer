@@ -6,7 +6,16 @@ A web-based tool for analyzing emotional patterns and "Double Voice" phenomena i
 
 ## Quick Start
 
-1. **Open the tool**: Visit the [live demo](https://nozomi-sawada.github.io/double-voice-explorer/) or open `index.html` locally
+1. **Open the tool**:
+    * **Online (Recommended)**: Visit the [live demo](https://nozomi-sawada.github.io/double-voice-explorer/)
+    * **Offline / Locally (Ensuring Reproducibility)**:
+        1. Download the following **three essential files** to the **same folder** on your computer:
+            * **`index.html`**
+            * **`chart.min.js`**
+            * **`papaparse.min.js`**
+        2. Open the downloaded `index.html` file in your browser.
+            (*This ensures the tool runs securely in an environment without external dependencies.*)
+
 2. **Load data**: Upload CSV files with emotion analysis results or use provided sample data
 3. **Analyze**: Select emotion pairs, adjust thresholds, and explore visualizations
 4. **Export**: Download results for further statistical analysis
