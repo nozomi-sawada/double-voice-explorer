@@ -1446,6 +1446,14 @@ Validation: Cohen's weighted kappa coefficients (Sawada & Sasaki, DH 2025)
                             title: {
                                 display: true,
                                 text: newTitle
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: function(context) {
+                                        // Remove comma separators from year in tooltip
+                                        return context[0].label.replace(/,/g, '');
+                                    }
+                                }
                             }
                         },
                         scales: {
