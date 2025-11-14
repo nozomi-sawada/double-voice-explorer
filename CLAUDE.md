@@ -104,10 +104,29 @@ The application follows a single-file structure with clearly separated sections:
 
 ### Key JavaScript Functions
 - `loadCSVData()`: Handles file upload and parsing
-- `calculateDoubleVoice()`: Computes DV metrics
-- `updateAnalysis()`: Refreshes visualizations based on filters
+- `calculateDoubleVoice()`: Computes DV metrics with explicit type conversion and NaN handling
+- `updateAnalysis()`: Refreshes visualizations based on filters with input validation
 - `compareEditorialReader()`: Launches 4-category comparison mode
 - `exportResults()`: Downloads analysis results
+
+### Performance and Input Validation Patterns
+
+**Chart Update Strategy**:
+All chart update functions (`updateScatterPlot()`, `updateTimeSeries()`, `updateComparisonBarChart()`, `updateDistributionChart()`) follow this pattern:
+- **First render**: Create new Chart instance
+- **Subsequent updates**: Use `chart.update()` instead of `chart.destroy()` + `new Chart()`
+- **Benefits**: Eliminates flickering, improves rendering speed, reduces memory churn
+
+**Input Validation**:
+- `calculateDoubleVoice()`: Uses `parseFloat(value) || 0` for emotion values to handle NaN/undefined
+- `updateAnalysis()`: Validates threshold and year inputs with fallback defaults:
+  - Threshold: Defaults to 0.5 if invalid
+  - Year range: Falls back to input min/max attributes, then to 1882-1921 if still invalid
+- **Pattern**: `isNaN()` checks combined with logical OR (`||`) for default values
+
+**Year Display Formatting**:
+- Time series charts use `ticks: { useGrouping: false }` to prevent comma separators (e.g., "1887" not "1,887")
+- Tooltip callbacks explicitly remove commas: `context[0].label.replace(/,/g, '')`
 
 ### Customization Points
 - Emotion pair definitions can be extended
