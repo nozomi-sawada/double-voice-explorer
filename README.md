@@ -1,5 +1,7 @@
 # Double Voice Explorer
 
+*English | [日本語](README.ja.md)*
+
 A web-based tool for analyzing emotional patterns and "Double Voice" phenomena in colonial Lagos newspapers (1882-1921).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
